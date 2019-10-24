@@ -48,6 +48,7 @@ private:
 	int step = 0;
 	int myColor = 0;
 	int tickOfTimeOfColor = 1000;
+	int tickOfNextOfAnimateTime = 500;
 	float mySize = 35.0;
 	float mypoX;
 	float mypoY;
@@ -65,19 +66,18 @@ private:
 	bool canChangeColor = false;
 	bool reverseX = false;
 	bool reverseY = false;
+	bool doubleJump = false;
 	std::string tempOfColor = "kirby_pink";
 	sf::CircleShape myBody;
 	sf::Texture texture;
 	sf::Sprite sprite;
-	//sf::Clock timeOfUnstable;
-	
 
-
-	clock_t timeOfColor;
-	clock_t animateTime;
-	clock_t timeOfJump;
-	clock_t timeOfUnstable;
-	clock_t timeOfCover;
+	sf::Clock timeOfUnstable;
+	sf::Clock timeOfColor;
+	sf::Clock animateTime;
+	sf::Clock timeOfJump;
+	sf::Clock timeOfCover;
+	sf::Clock timeOfDoubleJump;
 public:
 	Player() {
 		this->texture.loadFromFile("images/" + this->tempOfColor + "kirbynormal.png");
@@ -95,11 +95,12 @@ public:
 		this->myColor = 0;
 		this->acceleration = 0.1;
 		this->canChangeColor = false;
-		this->timeOfColor = clock();
-		this->animateTime = clock();
-		this->timeOfJump = clock();
-		this->timeOfCover = clock();
-		this->timeOfUnstable = clock();
+		this->timeOfColor.restart();
+		this->animateTime.restart();
+		this->timeOfJump.restart();
+		this->timeOfCover.restart();
+		this->timeOfUnstable.restart();
+		this->timeOfDoubleJump.restart();
 	}
 	Player(int a, std::string s, float w, float h) {
 		this->mySize = a;
@@ -118,11 +119,12 @@ public:
 		this->myColor = 0;
 		this->acceleration = 0.1;
 		this->canChangeColor = false;
-		this->timeOfColor = clock();
-		this->animateTime = clock();
-		this->timeOfJump = clock();
-		this->timeOfCover = clock();
-		this->timeOfUnstable = clock();
+		this->timeOfColor.restart();
+		this->animateTime.restart();
+		this->timeOfJump.restart();
+		this->timeOfCover.restart();
+		this->timeOfUnstable.restart();
+		this->timeOfDoubleJump.restart();
 	}
 	Player(int a, std::string s, float w, float h, int c) {
 		this->mySize = a;
@@ -142,11 +144,12 @@ public:
 		this->myColor = 0;
 		this->acceleration = 0.1;
 		this->canChangeColor = false;
-		this->timeOfColor = clock();
-		this->timeOfJump = clock();
-		this->animateTime = clock();
-		this->timeOfCover = clock();
-		this->timeOfUnstable = clock();
+		this->timeOfColor.restart();
+		this->animateTime.restart();
+		this->timeOfJump.restart();
+		this->timeOfCover.restart();
+		this->timeOfUnstable.restart();
+		this->timeOfDoubleJump.restart();
 	}
 	Player(int a, std::string s, float w, float h, float v, int c) {
 		this->mySize = a;
@@ -167,11 +170,12 @@ public:
 		this->myColor = 0;
 		this->acceleration = 0.1;
 		this->canChangeColor = false;
-		this->timeOfJump = clock();
-		this->timeOfColor = clock();
-		this->animateTime = clock();
-		this->timeOfCover = clock();
-		this->timeOfUnstable = clock();
+		this->timeOfColor.restart();
+		this->animateTime.restart();
+		this->timeOfJump.restart();
+		this->timeOfCover.restart();
+		this->timeOfUnstable.restart();
+		this->timeOfDoubleJump.restart();
 	}
 	Player(int a, std::string s, float w, float h, float v, int c, int tick) {
 		this->mySize = a;
@@ -193,11 +197,12 @@ public:
 		this->acceleration = 0.1;
 		this->canChangeColor = false;
 		this->tickOfTimeOfColor = tick;
-		this->timeOfColor = clock();
-		this->animateTime = clock();
-		this->timeOfCover = clock();
-		this->timeOfJump = clock();
-		this->timeOfUnstable = clock();
+		this->timeOfColor.restart();
+		this->animateTime.restart();
+		this->timeOfJump.restart();
+		this->timeOfCover.restart();
+		this->timeOfUnstable.restart();
+		this->timeOfDoubleJump.restart();
 	}
 	//  Player player(35.0, "images/kirby_pink/kirbynormal.png", 24.0, 22.0, 3.5, 2, 350);
 	sf::CircleShape drawCir();
@@ -256,6 +261,7 @@ public:
 	void _jump();
 	void _unstable();
 	void _cover();
+	void _doubleJumpCheck();
 	void _ALL_OF_UNSTABLE();
 };
 sf::CircleShape Player::drawCir() {
@@ -274,11 +280,12 @@ void Player::left() {
 			this->sprite.setPosition(this->mypoX, this->mypoY);
 			count++;
 		}
-		if (clock() > this->animateTime && !this->air && !KBP(sf::Keyboard::Key::D)) {
+		if (this->tickOfNextOfAnimateTime < this->animateTime.getElapsedTime().asMilliseconds() && !this->air && !KBP(sf::Keyboard::Key::D)) {
+			this->animateTime.restart();
 			if (this->stateCover)
-				this->animateTime = clock() + 150;
+				this->tickOfNextOfAnimateTime = 150;
 			else
-				this->animateTime = clock() + 50;
+				this->tickOfNextOfAnimateTime = 50;
 			this->aniRight();
 			this->rightleft = true;
 		}
@@ -294,11 +301,12 @@ void Player::left() {
 			this->sprite.setPosition(this->mypoX, this->mypoY);
 			count++;
 		}
-		if (clock() > this->animateTime && !this->air && !KBP(sf::Keyboard::Key::D)) {
+		if (this->tickOfNextOfAnimateTime < this->animateTime.getElapsedTime().asMilliseconds() && !this->air && !KBP(sf::Keyboard::Key::D)) {
+			this->animateTime.restart();
 			if (this->stateCover)
-				this->animateTime = clock() + 150;
+				this->tickOfNextOfAnimateTime = 150;
 			else
-				this->animateTime = clock() + 50;
+				this->tickOfNextOfAnimateTime = 50;
 			this->aniLeft();
 			this->rightleft = false;
 		}
@@ -317,11 +325,12 @@ void Player::right() {
 			this->sprite.setPosition(this->mypoX, this->mypoY);
 			count++;
 		}
-		if (clock() > this->animateTime && !this->air && !KBP(sf::Keyboard::Key::A)) {
+		if (this->tickOfNextOfAnimateTime < this->animateTime.getElapsedTime().asMilliseconds() && !this->air && !KBP(sf::Keyboard::Key::A)) {
+			this->animateTime.restart();
 			if (this->stateCover)
-				this->animateTime = clock() + 150;
+				this->tickOfNextOfAnimateTime = 150;
 			else
-				this->animateTime = clock() + 50;
+				this->tickOfNextOfAnimateTime = 50;
 			this->aniLeft();
 			this->rightleft = false;
 		}
@@ -337,11 +346,12 @@ void Player::right() {
 			this->sprite.setPosition(this->mypoX, this->mypoY);
 			count++;
 		}
-		if (clock() > this->animateTime && !this->air && !KBP(sf::Keyboard::Key::A)) {
+		if (this->tickOfNextOfAnimateTime < this->animateTime.getElapsedTime().asMilliseconds() && !this->air && !KBP(sf::Keyboard::Key::A)) {
+			this->animateTime.restart();
 			if (this->stateCover)
-				this->animateTime = clock() + 150;
+				this->tickOfNextOfAnimateTime = 150;
 			else
-				this->animateTime = clock() + 50;
+				this->tickOfNextOfAnimateTime = 50;
 			this->aniRight();
 			this->rightleft = true;
 		}
@@ -361,17 +371,23 @@ void Player::down() {
 	this->sprite.setPosition(this->mypoX, this->mypoY);
 }
 void Player::jump() {
-	if (this->mypoY > 50 + this->mySize && this->timeOfJump < clock() && !this->stateCover) {
-		this->timeOfJump = clock() + 250;
+	if (this->mypoY > 50 + this->mySize && this->timeOfJump.getElapsedTime().asMilliseconds() > 100 && !this->stateCover) {
+		this->timeOfJump.restart();
 		if (!this->air) {
 			this->setBaseSpeedJump(5.0);
 			this->setJump();
 		}
-		else {
-			if (this->getjumpCountMax() > this->getjumpCount()) {
-				this->setBaseSpeedJump(4.5);
-				this->setJump();
+		else if (this->getjumpCountMax() > this->getjumpCount()) {
+			if (this->stateJump) {
+				if (this->rightleft)
+					this->setTexture("images/" + this->tempOfColor + "/kirbydjump.png", 21.0, 29.0);
+				else
+					this->setTexture("images/" + this->tempOfColor + "/kirbydjump_left.png", 21.0, 29.0);
+				this->doubleJump = true;
+				this->timeOfDoubleJump.restart();
 			}
+			this->setBaseSpeedJump(4.5);
+			this->setJump();
 		}
 	}
 }
@@ -480,23 +496,25 @@ void Player::setSpeed(float a) {
 	this->speed = a;
 }
 void Player::setLR(bool a) {
-	this->rightleft = a;
-	if (this->rightleft && this->isCover())
-		this->setTexture("images/" + this->tempOfColor + "/kirbycover.png", 32.0, 35.0);
-	else if (!this->rightleft && this->isCover())
-		this->setTexture("images/" + this->tempOfColor + "/kirbycover_left.png", 32.0, 35.0);
-	else if (this->rightleft && this->isAir() && this->isJump())
-		this->setTexture("images/" + this->tempOfColor + "/kirbyjump.png", 21.0, 29.0);
-	else if (!this->rightleft && this->isAir() && this->isJump())
-		this->setTexture("images/" + this->tempOfColor + "/kirbyjump_left.png", 21.0, 29.0);
-	else if (this->rightleft && this->isAir() && this->isFall())
-		this->setTexture("images/" + this->tempOfColor + "/kirbyfall.png", 21.0, 24.0);
-	else if (!this->rightleft && this->isAir() && this->isFall())
-		this->setTexture("images/" + this->tempOfColor + "/kirbyfall_left.png", 21.0, 24.0);
-	else if (this->rightleft)
-		this->setTexture("images/" + this->tempOfColor + "/kirbynormal.png", 24.0, 22.0);
-	else
-		this->setTexture("images/" + this->tempOfColor + "/kirbynormal_left.png", 24.0, 22.0);
+	if (!this->doubleJump) {
+		this->rightleft = a;
+		if (this->rightleft && this->isCover())
+			this->setTexture("images/" + this->tempOfColor + "/kirbycover.png", 32.0, 35.0);
+		else if (!this->rightleft && this->isCover())
+			this->setTexture("images/" + this->tempOfColor + "/kirbycover_left.png", 32.0, 35.0);
+		else if (this->rightleft && this->isAir() && this->isJump())
+			this->setTexture("images/" + this->tempOfColor + "/kirbyjump.png", 21.0, 29.0);
+		else if (!this->rightleft && this->isAir() && this->isJump())
+			this->setTexture("images/" + this->tempOfColor + "/kirbyjump_left.png", 21.0, 29.0);
+		else if (this->rightleft && this->isAir() && this->isFall())
+			this->setTexture("images/" + this->tempOfColor + "/kirbyfall.png", 21.0, 24.0);
+		else if (!this->rightleft && this->isAir() && this->isFall())
+			this->setTexture("images/" + this->tempOfColor + "/kirbyfall_left.png", 21.0, 24.0);
+		else if (this->rightleft)
+			this->setTexture("images/" + this->tempOfColor + "/kirbynormal.png", 24.0, 22.0);
+		else
+			this->setTexture("images/" + this->tempOfColor + "/kirbynormal_left.png", 24.0, 22.0);
+	}
 }
 void Player::setUnstable(bool a) {
 	this->unstable = a;
@@ -522,32 +540,32 @@ void Player::setColor(sf::Color a) {
 	this->tempOfColor = "kirby_pink";
 }
 void Player::setPink() {
-	if (this->myColor != 0 && clock() > this->timeOfColor && this->canChangeColor) {
-		this->timeOfColor = clock() + this->tickOfTimeOfColor;
+	if (this->myColor != 0 && this->tickOfTimeOfColor < this->timeOfColor.getElapsedTime().asMilliseconds() && this->canChangeColor) {
+		this->timeOfColor.restart();
 		this->myBody.setFillColor(sf::Color(255, 192, 204));
 		this->myColor = 0;
 		this->tempOfColor = "kirby_pink";
 	}
 }
 void Player::setOrange() {
-	if (this->myColor != 1 && clock() > this->timeOfColor && this->canChangeColor) {
-		this->timeOfColor = clock() + this->tickOfTimeOfColor;
+	if (this->myColor != 1 && this->tickOfTimeOfColor < this->timeOfColor.getElapsedTime().asMilliseconds() && this->canChangeColor) {
+		this->timeOfColor.restart();
 		this->myBody.setFillColor(sf::Color(255, 142, 5));
 		this->myColor = 1;
 		this->tempOfColor = "kirby_orange";
 	}
 }
 void Player::setBlue() {
-	if (this->myColor != 2 && clock() > this->timeOfColor && this->canChangeColor) {
-		this->timeOfColor = clock() + this->tickOfTimeOfColor;
+	if (this->myColor != 2 && this->tickOfTimeOfColor < this->timeOfColor.getElapsedTime().asMilliseconds() && this->canChangeColor) {
+		this->timeOfColor.restart();
 		this->myBody.setFillColor(sf::Color(30, 30, 255));
 		this->myColor = 2;
 		this->tempOfColor = "kirby_blue";
 	}
 }
 void Player::setGreen() {
-	if (this->myColor != 3 && clock() > this->timeOfColor && this->canChangeColor) {
-		this->timeOfColor = clock() + this->tickOfTimeOfColor;
+	if (this->myColor != 3 && this->tickOfTimeOfColor < this->timeOfColor.getElapsedTime().asMilliseconds() && this->canChangeColor) {
+		this->timeOfColor.restart();
 		this->myBody.setFillColor(sf::Color(120, 246, 2));
 		this->myColor = 3;
 		this->tempOfColor = "kirby_green";
@@ -714,16 +732,25 @@ void Player::_jump() {
 	}
 }
 void Player::_unstable() {
-	if (clock() > this->timeOfUnstable && !KBP(sf::Keyboard::Key::A) && !KBP(sf::Keyboard::Key::D)) {
-		this->timeOfUnstable = clock() + 200;
+	if (300 < this->timeOfUnstable.getElapsedTime().asMilliseconds() && !KBP(sf::Keyboard::Key::A) && !KBP(sf::Keyboard::Key::D)) {
+		this->timeOfUnstable.restart();
 		this->aniUnstable();
 	}
 }
 void Player::_cover() {
-	if (clock() > this->timeOfCover && !this->air && this->stateCover) {
-		this->timeOfCover = clock() + 20;
+	if (10 < this->timeOfCover.getElapsedTime().asMilliseconds() && !this->air && this->stateCover) {
+		this->timeOfCover.restart();
 		if (!KBP(sf::Keyboard::Key::S)) {
 			this->setOnGround();
+		}
+	}
+}
+void Player::_doubleJumpCheck() {
+	if (this->doubleJump) {
+		if (this->timeOfDoubleJump.getElapsedTime().asMilliseconds() > 100) {
+			this->timeOfDoubleJump.restart();
+			this->doubleJump = false;
+			this->setLR(this->rightleft);
 		}
 	}
 }
@@ -733,6 +760,7 @@ void Player::_ALL_OF_UNSTABLE() {
 	this->_debugY();
 	this->_unstable();
 	this->_cover();
+	this->_doubleJumpCheck();
 }
 class Bullet {
 private:
@@ -749,8 +777,7 @@ private:
 	sf::CircleShape myBody;
 	sf::Texture texture;
 	sf::Sprite sprite;
-	clock_t timeOfAnimate;
-	int TICK = 200;
+	sf::Clock timeOfAnimate;
 	std::string tempOfColor = "original";
 public:
 	Bullet() {
@@ -762,7 +789,7 @@ public:
 		this->myBody.setPosition(this->startX, this->startY);
 		this->myBody.setRadius(this->mySize);
 		this->myBody.setFillColor(sf::Color::White);
-		this->timeOfAnimate = clock();
+		this->timeOfAnimate.restart();
 	}
 	Bullet(float stx, float sty, float size, float ang, float speed, int clr) {
 		this->startX = stx;
@@ -849,7 +876,7 @@ public:
 		this->sprite.setOrigin(112.0 / 2.0, 45.0 / 2.0);
 		this->sprite.setPosition(this->startX, this->startY);
 		this->sprite.setRotation(360 - ang);
-		this->timeOfAnimate = clock();
+		this->timeOfAnimate.restart();
 	}
 	void move();
 	void setSpeed(float);
@@ -868,8 +895,8 @@ void Bullet::move() {
 	this->sprite.setPosition(this->mypoX, this->mypoY);
 }
 void Bullet::animate() {
-	if (clock() > this->timeOfAnimate) {
-		this->timeOfAnimate = TICK + clock();
+	if (175 < this->timeOfAnimate.getElapsedTime().asMilliseconds()) {
+		this->timeOfAnimate.restart();
 		if (this->bulletStep) {
 			this->bulletStep = false;
 			this->texture.loadFromFile("images/bullet/" + this->tempOfColor + "/bullet.png");
@@ -1470,6 +1497,8 @@ private:
 	sf::Sprite sprite;
 	sf::Sprite spframe;
 	Player* player;
+	bool W_CHECK = 0;
+	bool PRE_W_CHECK = 0;
 public:
 	Game() {
 		this->texture.loadFromFile("images/background/backg.jpg");
@@ -1500,10 +1529,16 @@ public:
 		if (KBP(sf::Keyboard::S)) {
 			this->player->cover();
 		}
+		W_CHECK = false;
 		if (KBP(sf::Keyboard::W)) {
+			W_CHECK = true;
+		}
+		if (!PRE_W_CHECK && W_CHECK) {
 			this->player->jump();
 		}
+		PRE_W_CHECK = W_CHECK;
 		this->player->_ALL_OF_UNSTABLE();
+		
 	}
 };
 
@@ -1528,7 +1563,7 @@ int main() {
 	sf::RenderWindow window(sf::VideoMode(1600, 800), "KIRBY :)", sf::Style::Close);
 	sf::Event me;
 	window.setFramerateLimit(120);
-	stageOfMenu = 0;
+	stageOfMenu = 1;
 	Menu* menu_ptr;
 	Game* inGame_ptr;
 
@@ -1540,6 +1575,7 @@ int main() {
 	rr.setOrigin(200, 50);
 	rr.setPosition(800, 650);
 
+	
 
 	while (window.isOpen()) {
 		while (window.pollEvent(me)) {
@@ -1563,10 +1599,14 @@ int main() {
 			inGame(&window, &inGame_ptr);
 		}
 		
-
+		
+		
+		
 		//window.draw(r);
 		//window.draw(rr);
 	
+
+
 		window.display();
 		if (KBP(sf::Keyboard::Key::LControl) && KBP(sf::Keyboard::Key::P)) {
 			window.close();
